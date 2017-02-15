@@ -5,16 +5,30 @@ import random
 import io
 
 logger = logging.getLogger(__name__)
-api_key = 'AIzaSyDdGWh2QwcYHLEJOQGwKejtHY-PUC_5znc'
+api_key = "AIzaSyDdGWh2QwcYHLEJOQGwKejtHY-PUC_5znc"
 
-base_url_radar      = 'https://maps.googleapis.com/maps/api/place/radarsearch/json'
-base_url_details    = 'https://maps.googleapis.com/maps/api/place/details/json'
+base_url_radar      = "https://maps.googleapis.com/maps/api/place/radarsearch/json"
+base_url_details    = "https://maps.googleapis.com/maps/api/place/details/json"
 
-oslo_latlng = '59.913869,10.752245'
-radius      = '4000' #4km
+oslo_latlng = "59.913869,10.752245"
+radius      = "4000" #4km
 
 def _initialise(bot):
     plugins.register_user_command(["whereto"])
+
+def get_map(bot, latlng):
+    url = "https://maps.googleapis.com/maps/api/staticmap"
+    url += "?center=" + str(latlng["lat"]) + "," + str(latlng["lng"]) + "&zoom=18"
+    url += "&size=400x400"
+    url += "&markers=color:red%7Clabel:%7C" + str(latlng["lat"]) + "," + str(latlng["lng"])
+    url += "&key=" + api_key
+
+    filename = os.path.basename(url)
+    r = yield from aiohttp.request('get', url)
+    raw = yield from r.read()
+    image_data = io.BytesIO(raw)
+    img_id = yield from bot._client.upload_image(image_data, filename=filename)
+    return img_id
 
 def query(bot, event, qtype, args):
     url = base_url_radar
@@ -45,6 +59,8 @@ def query(bot, event, qtype, args):
     name = place["name"]
     addr = place["vicinity"]
 
+    image_id = get_map(bot, place["geometry"]["location"])
+    yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
     yield from bot.coro_send_message(event.conv_id, "We go to " + name + " at " + addr + ". Find it here: " + link )
 
 def whereto(bot, event, *args):
