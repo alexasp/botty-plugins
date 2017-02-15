@@ -7,7 +7,8 @@ import io
 logger = logging.getLogger(__name__)
 api_key = 'dc6zaTOxFJmzC'
 
-banned_users = {}
+# Set of banned users
+banned_users = set()
 
 def _initialise(bot):
     #plugins.register_handler(_handle_action)
