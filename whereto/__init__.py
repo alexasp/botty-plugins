@@ -73,7 +73,7 @@ def whereto(bot, event, *args):
     what = args[0].lower().trim()
     if what is "drunk":
         query(bot, event, 'bar', args[-1:])
-    else if what is "food":
+    elif what is "food":
         query(bot, event, 'restaurant', args[-1:])
     else:
         yield from bot.coro_send_message(event.conv_id, "I don't know where to " + what)
