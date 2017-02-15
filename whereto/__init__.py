@@ -70,7 +70,7 @@ def whereto(bot, event, *args):
     if len(args) == 0:
         return
 
-    what = args[0].lower().trim()
+    what = args[0].lower().strip()
     if what in "drunk":
         query(bot, event, 'bar', args[-1:])
     elif what in "food":
