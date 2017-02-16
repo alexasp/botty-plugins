@@ -11,10 +11,16 @@ api_key = 'dc6zaTOxFJmzC'
 banned_users = set()
 
 def _initialise(bot):
-    #plugins.register_handler(_handle_action)
+    plugins.register_handler(jiffme, type="message", priority=5)
     plugins.register_user_command(["giphy"])
     plugins.register_admin_command(["giphyban", "giphyunban"])
 
+def jiffme(bot, event, command):
+    if "#jiffme" in event.text:
+        args = event.text.split(" ")
+        args.remove("#jiffme")
+        if len(args) > 0:
+            yield from giphy(bot, event, args[random.randint(0,len(args)-1)])
 
 def find_user(bot, search):
     all_known_users = {}
