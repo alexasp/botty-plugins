@@ -20,22 +20,20 @@ def get_map(bot, latlng):
     url = "https://maps.googleapis.com/maps/api/staticmap"
     url += "?center=" + str(latlng["lat"]) + "," + str(latlng["lng"]) + "&zoom=18"
     url += "&size=400x400"
+    url += "&format=jpg"
     url += "&markers=color:red%7Clabel:%7C" + str(latlng["lat"]) + "," + str(latlng["lng"])
     url += "&key=" + api_key
 
-    filename = os.path.basename(url)
+    filename = os.path.basename(url) + ".jpg"
     r = yield from aiohttp.request('get', url)
     raw = yield from r.read()
-    image_data = io.BytesIO(raw)
-    img_id = yield from bot._client.upload_image(image_data, filename=filename)
-    return img_id
+    return io.BytesIO(raw), filename
 
 def query(bot, event, qtype, args):
     url = base_url_radar
     url += '?location=' + oslo_latlng
     url += '&radius=' + radius
     url += '&type=' + qtype
-    url += '&opennow=true'
     url += '&key=' + api_key
 
     r = yield from aiohttp.request("get", url)
@@ -48,32 +46,34 @@ def query(bot, event, qtype, args):
     place = r_json["results"][random.randint(0,len(r_json["results"])-1)]
 
     url = base_url_details
-    url += '&placeid=' + place["place_id"]
+    url += '?placeid=' + place["place_id"]
     url += '&key=' + api_key
 
     r = yield from aiohttp.request("get", url)
     r_json = yield from r.json()
-    place = r_json["results"]
+    place = r_json["result"]
 
     link = place["url"]
     name = place["name"]
     addr = place["vicinity"]
 
-    image_id = get_map(bot, place["geometry"]["location"])
-    yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
-    yield from bot.coro_send_message(event.conv_id, "We go to " + name + " at " + addr + ". Find it here: " + link )
+    image_data, filename = yield from get_map(bot, place["geometry"]["location"])
+    image_id = yield from bot._client.upload_image(image_data, filename=filename)
+    yield from bot.coro_send_message(event.conv_id, "We go to " + name + " at " + addr + ".")
+    yield from bot.coro_send_message(event.conv.id_, "Find it here: " + link , image_id=image_id)
 
 def whereto(bot, event, *args):
     if event.user.is_self:
         return
 
     if len(args) == 0:
+        yield from bot.coro_send_message(event.conv_id, "I duno what you want to do ¯\\_(ツ)_/¯")
         return
 
     what = args[0].lower().strip()
-    if what in "drunk":
-        query(bot, event, 'bar', args[-1:])
-    elif what in "food":
-        query(bot, event, 'restaurant', args[-1:])
+    if what == "drunk":
+        yield from query(bot, event, 'bar', args[-1:])
+    elif what == "food":
+        yield from query(bot, event, 'restaurant', args[-1:])
     else:
-        yield from bot.coro_send_message(event.conv_id, "I don't know where to " + what)
+        yield from bot.coro_send_message(event.conv_id, "I don't know where to " + what + "\nI only know where to drunk or food")
