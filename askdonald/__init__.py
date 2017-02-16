@@ -29,5 +29,10 @@ def askdonald(bot, event, *args):
         query = "+".join(args)
         r = yield from aiohttp.request("get", ask_donald_url + query, headers=headers)
         r_json = yield from r.json()
-        quote = r_json["_embedded"]["quotes"][random.randint(0, r_json['count']-1)]
-        yield from bot.coro_send_message(event.conv_id, quote["value"])
+        if r_json['count'] > 0:
+            quote = r_json["_embedded"]["quotes"][random.randint(0, r_json['count']-1)]
+            yield from bot.coro_send_message(event.conv_id, quote["value"])
+        else:
+            r = yield from aiohttp.request("get", random_donald_url, headers=headers)
+            quote = yield from r.json()
+            yield from bot.coro_send_message(event.conv_id, quote["value"])
