@@ -67,7 +67,7 @@ def whereto(bot, event, *args):
         return
 
     if len(args) == 0:
-        yield from bot.coro_send_message(event.conv_id, "I duno what you want to do ¯\\_(ツ)_/¯")
+        yield from bot.coro_send_message(event.conv_id, "I duno what you want to do ¯\\\_(ツ)_/¯")
         return
 
     what = args[0].lower().strip()
