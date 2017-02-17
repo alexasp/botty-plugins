@@ -23,7 +23,7 @@ def harmannenfalt(bot, event, *args):
 	data = yield from r.json()
 	falt = '<b>Ja</b>' if data['falt_ned'] else '<b>Nei</b>'
 	
-	if data['falt_ned'] is False and random.randint(1, 4) is 4:
+	if falt == '<b>Nei</b>' and random.randint(1, 6) == 2:
 		yield from bot.coro_send_message(event.conv_id, '<b>Ja</b>')
 		time.sleep(5.0)
 		yield from bot.coro_send_message(event.conv_id, 'Lol tulla.')
