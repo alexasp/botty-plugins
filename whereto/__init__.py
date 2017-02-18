@@ -24,7 +24,9 @@ def update_location(bot, event, command):
         return
 
     if "maps.google.com" in event.text:
-        user_location_map[event.user.id_.chat_id] = event.text.split("?q=")[1]
+        logger.info(event.text)
+        tmp = event.text.split("?q=")[1].split("@")
+        user_location_map[event.user.id_.chat_id] = tmp[len(tmp)-1] 
         yield from bot.coro_send_message(event.conv_id, "I now know where " + event.user.full_name + " is ( ͡° ͜ʖ ͡°)")
 
 def get_map(bot, latlng):
@@ -55,6 +57,8 @@ def query(bot, event, qtype, args):
     url += '&radius=' + rad
     url += '&type=' + qtype
     url += '&key=' + api_key
+
+    logger.info(url)
 
     r = yield from aiohttp.request("get", url)
     r_json = yield from r.json()
