@@ -23,7 +23,7 @@ def insult(bot, event, *args):
         yield from bot.coro_send_message(event.conv_id, who + " is the real guy, the best guy")
         return
 
-    if "daniel" in event.user.full_name:
+    if "daniel" in event.user.full_name.lower():
         who = event.user.full_name
 
     url = 'http://autoinsult.datahamster.com/scripts/webinsult.server.php?xajax=generate_insult&xajaxargs[]=3'
