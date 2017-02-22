@@ -25,7 +25,7 @@ def harmannenfalt(bot, event, *args):
 	
 	if falt == '<b>Nei</b>' and random.randint(1, 6) == 2:
 		yield from bot.coro_send_message(event.conv_id, '<b>Ja</b>')
-		time.sleep(5.0)
+		yield from asyncio.sleep(5.0)
 		yield from bot.coro_send_message(event.conv_id, 'Lol tulla.')
 		yield from bot.coro_send_message(event.conv_id, falt)
 	else:

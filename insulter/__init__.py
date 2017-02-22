@@ -10,8 +10,7 @@ my_bros = set()
 
 def _initialise(bot):
     plugins.register_handler(on_message, type="message", priority=5)
-    plugins.register_user_command(["bemybro"])
-    plugins.register_user_command(["insult"])
+    plugins.register_user_command(["insult", "bemybro", "arewebros"])
 
 def on_message(bot, event, command):
     for bro in my_bros:
@@ -34,21 +33,34 @@ def back_up(bro, bot, event, command):
         yield from insult(bot, event, event.user.full_name.split(" ")[0])
 
 def bemybro(bot, event, *args):
-    if event.user.is_self:
-        return
+	if event.user.is_self:
+		return
 
-    if len(args) == 0:
-        yield from bot.coro_send_message(event.conv_id, "Missing argument")
-        return
+	if len(args) == 0:
+		yield from bot.coro_send_message(event.conv_id, "Missing argument")
+		return
 
-    name = event.user.full_name.split(" ")[0]
-    if args[0] == "start":
-        yield from bot.coro_send_message(event.conv_id, name + " is now my bro")
-        my_bros.add(name)
-    elif args[0] == "stop":
-        yield from bot.coro_send_message(event.conv_id, name + " is no longer my bro, but I still love him")
-        my_bros.remove(name)
+	global my_bros
+	name = event.user.full_name.split(" ")[0]
+	if args[0] == "start":
+		yield from bot.coro_send_message(event.conv_id, name + " is now my bro")
+		my_bros.add(name)
+	elif args[0] == "stop":
+		yield from bot.coro_send_message(event.conv_id, name + " is no longer my bro, but I still love him")
+		my_bros.remove(name)
 
+def arewebros(bot, event, *args):
+	if event.user.is_self:
+		return
+
+	global my_bros
+	name = event.user.full_name.split(" ")[0]
+	if name in my_bros:
+		yield from bot.coro_send_message(event.conv_id, "Yes, " + name + " is my bro")
+	else:
+		yield from bot.coro_send_message(event.conv_id, "No, " + name + " is not my bro")
+	
+	
 def insult(bot, event, *args):
     if event.user.is_self:
         return
