@@ -12,15 +12,20 @@ banned_users = set()
 
 def _initialise(bot):
     plugins.register_handler(jiffme, type="message", priority=5)
-    plugins.register_user_command(["giphy"])
+    plugins.register_user_command(["giphy", "jiffs", "jifflate"])
     plugins.register_admin_command(["giphyban", "giphyunban"])
 
 def jiffme(bot, event, command):
-    if "#jiffme" in event.text:
-        args = event.text.split(" ")
-        args.remove("#jiffme")
-        if len(args) > 0:
-            yield from giphy(bot, event, args[random.randint(0,len(args)-1)])
+	if "#jiffme" in event.text:
+		args = event.text.split(" ")
+		args.remove("#jiffme")
+		if len(args) > 0:
+			yield from giphy(bot, event, args[random.randint(0,len(args)-1)])
+	elif "#jiffit" in event.text:
+		args = event.text.split(" ")
+		args.remove("#jiffit")
+		if len(args) > 0:
+			yield from jifflate(bot, event, *args)
 
 def find_user(bot, search):
     all_known_users = {}
@@ -53,31 +58,71 @@ def giphyunban(bot, event, *args):
     else:
         yield from bot.coro_send_message(event.conv.id_, "Failed to find user" + " ".join(args))
 
+		
+def giphy_search(bot, event, term):
+
+	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/search?q='+ term +'&limit=25&api_key=dc6zaTOxFJmzC')
+	r_json = yield from r.json()
+
+	if len(r_json['data']) == 0:
+		yield from bot.coro_send_message(event.conv_id, 'No hits.')
+		return
+
+	image_link = r_json['data'][random.randint(0,len(r_json['data'])-1)]['images']['original']['url']
+
+	filename = os.path.basename(image_link)
+	r = yield from aiohttp.request('get', image_link)
+	raw = yield from r.read()
+	image_data = io.BytesIO(raw)
+	image_id = yield from bot._client.upload_image(image_data, filename=filename)
+	yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
+	
+def giphy_translate(bot, event, term):
+	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/translate?s='+ term +'&api_key=dc6zaTOxFJmzC')
+	r_json = yield from r.json()
+
+	if len(r_json['data']) == 0:
+		yield from bot.coro_send_message(event.conv_id, 'No hits.')
+		return
+
+	image_link = r_json['data']['images']['original']['url']
+
+	filename = os.path.basename(image_link)
+	r = yield from aiohttp.request('get', image_link)
+	raw = yield from r.read()
+	image_data = io.BytesIO(raw)
+	image_id = yield from bot._client.upload_image(image_data, filename=filename)
+	yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
+	
+def jifflate(bot, event, *args):
+	if event.user.is_self:
+		return
+
+	if event.user.id_.chat_id in banned_users:
+		yield from bot.coro_send_message(event.conv.id_, "lol u r banned")
+		return
+
+	if len(args) >= 1:
+		giphy_keywords = '+'.join(list(args))
+
+	search_term = giphy_keywords.lower()
+	yield from giphy_translate(bot, event, search_term)
+
+def jiffs(bot, event, *args):
+	yield from giphy(bot, event, *args)
+
 def giphy(bot, event, *args):
-    if event.user.is_self:
-        return
+	if event.user.is_self:
+		return
 
-    if event.user.id_.chat_id in banned_users:
-        yield from bot.coro_send_message(event.conv.id_, "lol u r banned")
-        return
+	if event.user.id_.chat_id in banned_users:
+		yield from bot.coro_send_message(event.conv.id_, "lol u r banned")
+		return
 
-    if len(args) >= 1:
-        giphy_keywords = '+'.join(list(args))
+	if len(args) >= 1:
+		giphy_keywords = '+'.join(list(args))
 
-    search_term = giphy_keywords.lower()
+	search_term = giphy_keywords.lower()
+	yield from giphy_search(bot, event, search_term)
 
-    r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/search?q='+ search_term +'&limit=25&api_key=dc6zaTOxFJmzC')
-    r_json = yield from r.json()
 
-    if len(r_json['data']) == 0:
-        yield from bot.coro_send_message(event.conv_id, 'No hits.')
-        return
-
-    image_link = r_json['data'][random.randint(0,len(r_json['data'])-1)]['images']['original']['url']
-
-    filename = os.path.basename(image_link)
-    r = yield from aiohttp.request('get', image_link)
-    raw = yield from r.read()
-    image_data = io.BytesIO(raw)
-    image_id = yield from bot._client.upload_image(image_data, filename=filename)
-    yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
