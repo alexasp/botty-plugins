@@ -10,16 +10,19 @@ url = 'https://api.imgur.com/3/gallery/random/random/0'
 headers = {'Authorization': 'Client-ID ' + client_id, 'Accept': 'application/json'}
 
 def _initialise(bot):
-    plugins.register_handler(jiffme, type="message", priority=5)
+    plugins.register_handler(on_msg, type="message", priority=5)
     plugins.register_user_command(["imgur"])
 
 
-def imgur(bot, event, command):
+def on_msg(bot, event, command):
     if "#imgur" in event.text:
         yield from fetch(bot, event)
-
+		
+def imgur(bot, event, *args):
+	yield from fetch(bot, event)
+		
 def fetch(bot, event):
-    r = yield from aiohttp.request('get', url, headers)
+    r = yield from aiohttp.request('get', url, headers=headers)
     r_json = yield from r.json()
 
     if len(r_json['data']) == 0:
