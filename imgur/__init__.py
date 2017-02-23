@@ -18,7 +18,7 @@ def imgur(bot, event, command):
     if "#imgur" in event.text:
         yield from fetch(bot, event)
 
-def giphy(bot, event):
+def fetch(bot, event):
     r = yield from aiohttp.request('get', url, headers)
     r_json = yield from r.json()
 
