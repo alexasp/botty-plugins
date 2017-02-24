@@ -1,3 +1,8 @@
+import os
+import plugins
+import logging
+import io
+
 def _initialise(bot):
     plugins.register_user_command(["kick"])
 
