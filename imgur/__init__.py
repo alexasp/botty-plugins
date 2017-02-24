@@ -29,7 +29,16 @@ def fetch(bot, event):
         yield from bot.coro_send_message(event.conv_id, 'No hits.')
         return
 
-    image_link = r_json['data'][random.randint(0,len(r_json['data'])-1)]['link']
+
+    var number = random.randint(0,len(r_json['data'])-1)
+    var sfw = false;
+
+    while sfw:
+        if (r_json['data'][number]['nswf']):
+            number = random.randint(0,len(r_json['data'])-1)
+        else:
+            image_link = r_json['data'][number]['link']
+            sfw = true
 
     filename = os.path.basename(image_link)
     r = yield from aiohttp.request('get', image_link)
