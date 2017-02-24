@@ -22,32 +22,33 @@ def find_user(bot, search):
     return None
 
 def shame(bot, event, *args):
-	if event.user.is_self:
-		return
+    if event.user.is_self:
+        return
 
-	if len(args) == 0:
-		yield from bot.coro_send_message(event.conv_id, "I duno who to shame")
-		return
+    if len(args) == 0:
+        yield from bot.coro_send_message(event.conv_id, "I duno who to shame")
+        return
 
-	user = find_user(bot, " ".join(args))
-	if user is None:
-		yield from bot.coro_send_message(event.conv_id, "I duno who to shame, cannot find user " + " ".join(args))
+    user = find_user(bot, " ".join(args))
+    if user is None:
+        yield from bot.coro_send_message(event.conv_id, "I duno who to shame, cannot find user " + " ".join(args))
+        return
 
-	conv_1on1 = None
-	if user.full_name.split(" ")[0] == "Jens":
-		yield from bot.coro_send_message(event.conv_id, "You cannot shame the king, shame on you")
-		conv_1on1 = yield from bot.get_1to1(event.user.id_.chat_id)
-		user = event.user
-	else:
-		conv_1on1 = yield from bot.get_1to1(user.id_.chat_id)
+    conv_1on1 = None
+    if user.full_name.split(" ")[0] == "Jens":
+        yield from bot.coro_send_message(event.conv_id, "You cannot shame the king, shame on you")
+        conv_1on1 = yield from bot.get_1to1(event.user.id_.chat_id)
+        user = event.user
+    else:
+        conv_1on1 = yield from bot.get_1to1(user.id_.chat_id)
 
-	yield from bot.coro_send_message(event.conv.id_, "Shaming " + user.full_name)
+    yield from bot.coro_send_message(event.conv.id_, "Shaming " + user.full_name)
 
-	l = random.randint(4,8)
-	for i in range(0, l):
-		yield from bot.coro_send_message(conv_1on1, "<b>shame</b>")
-		if random.randint(0,1) == 0:
-			yield from bot.coro_send_message(conv_1on1, "🔔🔔")
-		yield from asyncio.sleep(1.0 + random.random())
+    l = random.randint(4,8)
+    for i in range(0, l):
+        yield from bot.coro_send_message(conv_1on1, "<b>shame</b>")
+        if random.randint(0,1) == 0:
+            yield from bot.coro_send_message(conv_1on1, "🔔🔔")
+        yield from asyncio.sleep(1.0 + random.random())
 
-	yield from bot.coro_send_message(event.conv.id_, user.full_name + " has been shamed")
+    yield from bot.coro_send_message(event.conv.id_, user.full_name + " has been shamed")

@@ -17,9 +17,11 @@ def _initialise(bot):
 # def on_msg(bot, event, command):
     # if "#imgur" in event.text:
     #     yield from fetch(bot, event)
-		
+
 def imgur(bot, event, *args):
-	yield from fetch(bot, event, args)
+    if event.user.is_self:
+        return
+    yield from fetch(bot, event, args)
 
 # def nswf(r_json, nswf):
 #     number = random.randint(0,len(r_json['data'])-1)
@@ -32,14 +34,15 @@ def imgur(bot, event, *args):
 #             nsfw = false
 #     return image_link
 
-def topic(r_json, event, *args):
-    topic = args[0].lower().strip()
-    for item in r_json['data']:
-        if item['topic'] == topic:
-            return item['link']
+def topic(r_json, event, args):
+    if len(args) > 0:
+        topic = args[0].lower().strip()
+        for item in r_json['data']:
+            if item['topic'] == topic:
+                return item['link']
+    return r_json['data'][random.randint(0, len(r_json['data'])-1)]['link']
 
-		
-def fetch(bot, event, *args):
+def fetch(bot, event, args):
     r = yield from aiohttp.request('get', url, headers=headers)
     r_json = yield from r.json()
 
@@ -47,8 +50,12 @@ def fetch(bot, event, *args):
         yield from bot.coro_send_message(event.conv_id, 'No hits.')
         return
 
-    image_link = yield from topic(r_json, event, args)
+    image_link = topic(r_json, event, args)
+    if image_link is None:
+        yield from bot.coro_send_message(event.conv_id, 'No hits.')
+        return
 
+    logger.info(image_link)
     filename = os.path.basename(image_link)
     r = yield from aiohttp.request('get', image_link)
     raw = yield from r.read()
