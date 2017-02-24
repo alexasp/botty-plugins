@@ -1,39 +1,34 @@
 import os
 import plugins
 import logging
-import io
+import io, random
+from commands import command
+
+logger = logging.getLogger(__name__)
 
 def _initialise(bot):
     plugins.register_user_command(["kick"])
 
 
 def kick(bot, event, *args):
-    parameters = list(args)
-
-    if "andre" in " ".join(args):
-        yield from bot.coro_send_message(event.conv_id, "Du kan ikke kicke i hytt og gevær")
+    if event.user.is_self:
         return
-        
-    source_conv = event.conv_id
+
+    if len(args) == 0:
+        yield from bot.coro_send_message(event.conv_id, "pliz supply someone to kick")
+
     remove = []
+    for arg in args:
+        try:
+            user = bot.call_shared("find_user", bot, arg)
+            if user is not None:
+                yield from bot.coro_send_message(event.conv_id, "Kicking " + user.full_name + (" in the plums" if random.randint(0,2) == 1 else ""))
+                remove.append(user.id_.chat_id)
+        except Exception as e:
+            yield from bot.coro_send_message(event.conv_id, "I need shamebells to werk")
+            return
+            logger.info(e)
 
-    if len(remove) <= 0:
-        raise ValueError(_("supply at least one valid user id to kick"))
-
-    for parameter in parameters:
-        if parameter in bot.conversations.catalog:
-            source_conv = parameter
-        elif parameter in bot.conversations.catalog[source_conv]["participants"]:
-            remove.append(parameter)
-        else:
-            raise ValueError(_("supply optional conversation id and valid user ids to kick"))
-
-    arguments = ["refresh", source_conv, "without"] + remove
-
-    if test:
-        arguments.append("test")
-
-    if quietly:
-        arguments.append("quietly")
-
+    source_conv = event.conv.id_
+    arguments = ["refresh", source_conv, "without"] + remove + ["norename", "quietly", "test"]
     yield from command.run(bot, event, *arguments)

@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 def _initialise(bot):
     plugins.register_user_command(["shame"])
+    bot.register_shared("find_user", find_user)
 
 def find_user(bot, search):
     all_known_users = {}
@@ -39,9 +40,9 @@ def shame(bot, event, *args):
 		user = event.user
 	else:
 		conv_1on1 = yield from bot.get_1to1(user.id_.chat_id)
-		
+
 	yield from bot.coro_send_message(event.conv.id_, "Shaming " + user.full_name)
-	
+
 	l = random.randint(4,8)
 	for i in range(0, l):
 		yield from bot.coro_send_message(conv_1on1, "<b>shame</b>")
