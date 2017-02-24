@@ -10,16 +10,34 @@ url = 'https://api.imgur.com/3/gallery/random/random/0'
 headers = {'Authorization': 'Client-ID ' + client_id, 'Accept': 'application/json'}
 
 def _initialise(bot):
-    plugins.register_handler(on_msg, type="message", priority=5)
+    # plugins.register_handler(on_msg, type="message", priority=5)
     plugins.register_user_command(["imgur"])
 
 
-def on_msg(bot, event, command):
-    if "#imgur" in event.text:
-        yield from fetch(bot, event)
+# def on_msg(bot, event, command):
+    # if "#imgur" in event.text:
+    #     yield from fetch(bot, event)
 		
 def imgur(bot, event, *args):
 	yield from fetch(bot, event)
+
+# def nswf(r_json, nswf):
+#     number = random.randint(0,len(r_json['data'])-1)
+
+#     while nsfw:
+#         if (r_json['data'][number]['nswf']):
+#             number = random.randint(0,len(r_json['data'])-1)
+#         else:
+#             image_link = r_json['data'][number]['link']
+#             nsfw = false
+#     return image_link
+
+def topic(r_json, event):
+    topic = args[0].lower().strip()
+    for item in r_json['data']:
+        if item['topic'] == topic:
+            return item['link']
+
 		
 def fetch(bot, event):
     r = yield from aiohttp.request('get', url, headers=headers)
@@ -29,16 +47,7 @@ def fetch(bot, event):
         yield from bot.coro_send_message(event.conv_id, 'No hits.')
         return
 
-
-    var number = random.randint(0,len(r_json['data'])-1)
-    var nsfw = true;
-
-    while nsfw:
-        if (r_json['data'][number]['nswf']):
-            number = random.randint(0,len(r_json['data'])-1)
-        else:
-            image_link = r_json['data'][number]['link']
-            nsfw = false
+    image_link = yield from topic(r_json, event)
 
     filename = os.path.basename(image_link)
     r = yield from aiohttp.request('get', image_link)
