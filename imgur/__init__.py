@@ -31,14 +31,14 @@ def fetch(bot, event):
 
 
     var number = random.randint(0,len(r_json['data'])-1)
-    var sfw = false;
+    var nsfw = true;
 
-    while sfw:
+    while nsfw:
         if (r_json['data'][number]['nswf']):
             number = random.randint(0,len(r_json['data'])-1)
         else:
             image_link = r_json['data'][number]['link']
-            sfw = true
+            nsfw = false
 
     filename = os.path.basename(image_link)
     r = yield from aiohttp.request('get', image_link)
