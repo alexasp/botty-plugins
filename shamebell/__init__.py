@@ -33,6 +33,9 @@ def shame(bot, event, *args):
     if user is None:
         yield from bot.coro_send_message(event.conv_id, "I duno who to shame, cannot find user " + " ".join(args))
         return
+    if user.is_self:
+        yield from bot.coro_send_message(event.conv_id, "I cannot shame myself, but I am very shameful :(")
+        return
 
     conv_1on1 = None
     if user.full_name.split(" ")[0] == "Jens":
