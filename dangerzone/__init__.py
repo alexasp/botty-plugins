@@ -82,9 +82,11 @@ def checkmyballs(bot, event, *args):
         return
 
     sel = r_json["data"][random.randint(0, len(r_json["data"])-1)]
-    title = re.sub(r"\[.+?\]|\(.+?\)|NSFW(\/L)?|SFW", "", sel["title"])
-    titles = re.split(r"\||or", title)#title.split("|")
+    title = re.sub(r"\[.+?\]|\(.+?\)|N?SFL?W?(\/L)?", "", sel["title"])
+    titles = re.split(r"\s+\|\s+|\s+or\s+|\s+\/\s+|\s+\\\s+", title)
     if len(titles) != 2:
+        logger.info("Failed to parse: " + title)
+        logger.info("Parsed titles: [" + "], [".join(titles) + "]")
         yield from bot.coro_send_message(event.conv_id, "I failed to parse reddit title :(")
         return
 
