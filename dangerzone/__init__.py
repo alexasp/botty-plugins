@@ -75,7 +75,7 @@ def checkmyballs(bot, event, *args):
         yield from bot.coro_send_message(event.conv_id, event.user.full_name + " is already getting his balls checked")
         return
 
-    r = yield from aiohttp.request('get', url + str(random.randint(0, 10)) +'/year', headers=headers)
+    r = yield from aiohttp.request('get', url + str(random.randint(0, 50)) +'/year', headers=headers)
     r_json = yield from r.json()
     if len(r_json["data"]) == 0:
         yield from bot.coro_send_message(event.conv_id, "Failed to find image :(")
