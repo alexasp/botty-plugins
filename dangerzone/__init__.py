@@ -83,7 +83,7 @@ def checkmyballs(bot, event, *args):
 
     sel = r_json["data"][random.randint(0, len(r_json["data"])-1)]
     title = re.sub(r"\[.+?\]|\(.+?\)|N?SFL?W?(\/L)?", "", sel["title"])
-    titles = re.split(r"\s+\|\s+|\s+or\s+|\s+\/\s+|\s+\\\s+", title)
+    titles = re.split(r"\s*\|\s*|\s+or\s+|\s*\/\s*|\s*\\\s*|\.\s+(?=[A-Z])|\s{2,}(?=[A-Z])", title.strip())
     if len(titles) != 2:
         logger.info("Failed to parse: " + title)
         logger.info("Parsed titles: [" + "], [".join(titles) + "]")

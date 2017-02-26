@@ -39,6 +39,9 @@ def get_last_commit():
 def on_botting(bot, broadcast_list, context):
     segments = broadcast_list[0][1]
 
+    if len(segments) == 0:
+        return
+
     if "botty-plugins" in segments[0].text:
         if "loaded" in segments[1].text or "reloaded" in segments[1].text:
             botty_plug = re.findall(r"(?<=botty\-plugins\.)\w*", segments[0].text)[0]
