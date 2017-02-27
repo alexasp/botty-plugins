@@ -100,12 +100,14 @@ def mixme(bot, event, *args):
                 term.append(arg)
 
     url_append = ''
+    rand_results = True
     if len(term) > 0:
         if ingredient is not None:
             term.append(ingredient)
         if taste is not None:
             term.append(taste)
         url_append = 'quickSearch/drinks/' + "%20".join(term)
+        rand_results = False
     elif ingredient is not None or taste is not None:
         url_append = 'drinks/alcoholic/rating/gt50/'
         if ingredient is not None:
@@ -125,7 +127,10 @@ def mixme(bot, event, *args):
         yield from bot.coro_send_message(event.conv_id, "I duno how to mix that")
         return
 
-    drink = r_json["result"][random.randint(0, len(r_json["result"])-1)]
+    if rand_results:
+        drink = r_json["result"][random.randint(0, len(r_json["result"])-1)]
+    else:
+        drink = r_json["result"][0]
 
     result = "<b>" + drink["name"] + "</b>\n"
     result += drink["descriptionPlain"] +  " <i>Served in a " + drink["servedIn"]["text"].lower() + "</i> \n"
