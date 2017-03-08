@@ -10,22 +10,36 @@ api_key = 'dc6zaTOxFJmzC'
 # Set of banned users
 banned_users = set()
 
+#log last message by user
+last_message = {}
+
 def _initialise(bot):
     plugins.register_handler(jiffme, type="message", priority=5)
     plugins.register_user_command(["giphy", "jiffs", "jifflate"])
     plugins.register_admin_command(["giphyban", "giphyunban"])
 
 def jiffme(bot, event, command):
-	if "#jiffme" in event.text:
-		args = event.text.split(" ")
-		args.remove("#jiffme")
-		if len(args) > 0:
-			yield from giphy(bot, event, args[random.randint(0,len(args)-1)])
-	elif "#jiffit" in event.text:
-		args = event.text.split(" ")
-		args.remove("#jiffit")
-		if len(args) > 0:
-			yield from jifflate(bot, event, *args)
+    text_lower = event.text.lower()
+    if "#jiffme" in text_lower:
+        args = text_lower.split(" ")
+        args.remove("#jiffme")
+        if len(args) > 0:
+            yield from giphy(bot, event, args[random.randint(0,len(args)-1)])
+    elif "#jiffit" in text_lower:
+        args = text_lower.split(" ")
+        args.remove("#jiffit")
+        if len(args) > 0:
+            yield from jifflate(bot, event, *args)
+    else:
+        for key, value in last_message.items():
+            if "#jiff" + key.lower() in text_lower:
+                tmp = re.sub(r"\#jiff\w*", "", value)
+                args = value.split(" ")
+                if len(value) > 0:
+                    yield from jifflate(bot, event, *args)
+                break
+        else:
+            last_message[event.user.first_name] = text_lower
 
 def find_user(bot, search):
     all_known_users = {}
@@ -58,7 +72,7 @@ def giphyunban(bot, event, *args):
     else:
         yield from bot.coro_send_message(event.conv.id_, "Failed to find user" + " ".join(args))
 
-		
+
 def giphy_search(bot, event, term):
 
 	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/search?q='+ term +'&limit=25&api_key=dc6zaTOxFJmzC')
@@ -76,7 +90,7 @@ def giphy_search(bot, event, term):
 	image_data = io.BytesIO(raw)
 	image_id = yield from bot._client.upload_image(image_data, filename=filename)
 	yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
-	
+
 def giphy_translate(bot, event, term):
 	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/translate?s='+ term +'&api_key=dc6zaTOxFJmzC')
 	r_json = yield from r.json()
@@ -93,7 +107,7 @@ def giphy_translate(bot, event, term):
 	image_data = io.BytesIO(raw)
 	image_id = yield from bot._client.upload_image(image_data, filename=filename)
 	yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
-	
+
 def jifflate(bot, event, *args):
 	if event.user.is_self:
 		return
@@ -124,5 +138,3 @@ def giphy(bot, event, *args):
 
 	search_term = giphy_keywords.lower()
 	yield from giphy_search(bot, event, search_term)
-
-
