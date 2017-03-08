@@ -40,6 +40,9 @@ def jiffme(bot, event, command):
                 break
         else:
             last_message[event.user.first_name] = text_lower
+            user_nick = bot.memory.get_suboption("user_data", event.user.id_.chat_id, "nickname")
+            if user_nick:
+                last_message[user_nick] = text_lower
 
 def find_user(bot, search):
     all_known_users = {}
@@ -78,7 +81,7 @@ def giphy_search(bot, event, term):
 	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/search?q='+ term +'&limit=25&api_key=dc6zaTOxFJmzC')
 	r_json = yield from r.json()
 
-	if len(r_json['data']) == 0:
+	if 'data' in r_json and len(r_json['data']) == 0:
 		yield from bot.coro_send_message(event.conv_id, 'No hits.')
 		return
 
@@ -95,7 +98,7 @@ def giphy_translate(bot, event, term):
 	r = yield from aiohttp.request('get', 'http://api.giphy.com/v1/gifs/translate?s='+ term +'&api_key=dc6zaTOxFJmzC')
 	r_json = yield from r.json()
 
-	if len(r_json['data']) == 0:
+	if 'data' in r_json and len(r_json['data']) == 0:
 		yield from bot.coro_send_message(event.conv_id, 'No hits.')
 		return
 
