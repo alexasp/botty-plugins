@@ -30,7 +30,7 @@ def _initialise(bot):
     loop = asyncio.get_event_loop()
     loop.create_task(init_botty())
 
-    plugins.register_user_command(["reloadbotty"])
+    plugins.register_admin_command(["reloadbotty"])
 
 def reloadbotty(bot, event, *args):
     for plug in plugs:
