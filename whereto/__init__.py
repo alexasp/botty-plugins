@@ -30,7 +30,7 @@ def where_am_i(bot, user):
 def update_location(bot, event, command):
 	if event.user.is_self:
 		return
-	logger.info(event.text)
+		
 	if "maps.google.com" in event.text:
 		logger.info(event.text)
 		tmp = event.text.split("q=")[1].split("@")
