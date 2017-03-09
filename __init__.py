@@ -17,7 +17,8 @@ plugs = [
     "superecho",
     "tldrify",
     "whatis",
-    "whereto"
+    "whereto",
+    "botbiker"
 ]
 
 #TODO:  /bot reload kaller ikke _initializse. Vet ikke om det er en bug men
@@ -33,22 +34,33 @@ def _initialise(bot):
     plugins.register_admin_command(["reloadbotty"])
 
 def reloadbotty(bot, event, *args):
+    errors = []
+    plugs_loaded = []
     for plug in plugs:
         plug_path = "plugins.botty-plugins." + plug
+        fail_msg = "<b>Failed to load " + plug + "</b>"
         try:
             logger.info ("Loading: " + plug_path)
-            plugins.load(bot, plug_path)
-        except (RuntimeError, KeyError) as e:
+            if plugins.load(bot, plug_path):
+                plugs_loaded.append(plug)
+            else:
+                errors.append(fail_msg)
+        except RuntimeError as e:
             try:
                 logger.info ("Reloading: " + plug_path)
                 yield from plugins.unload(bot, plug_path)
-                plugins.load(bot, plug_path)
-            except (RuntimeError, KeyError) as e:
-                if event is not None:
-                    yield from bot.coro_send_message(event.conv_id, "Failed to load " + plug_path)
-                    yield from bot.coro_send_message(event.conv_id, str(e))
+                if plugins.load(bot, plug_path):
+                    plugs_loaded.append(plug)
                 else:
-                    logger.info("Failed to load " + plug_path)
-                    logger.info(str(e))
-    if event is not None:
-        yield from bot.coro_send_message(event.conv_id, "<b>Botty reloaded</b>")
+                    errors.append(fail_msg)
+            except Exception as e:
+                errors.append(fail_msg)
+        except Exception as e:
+            errors.append(fail_msg)
+
+    if event:
+        if len(errors) == 0:
+            yield from bot.coro_send_message(event.conv_id, "<b>Botty reloaded</b>")
+            yield from bot.coro_send_message(event.conv_id, "\n".join(plugs_loaded))
+        else:
+            yield from bot.coro_send_message(event.conv_id, "\n".join(errors))

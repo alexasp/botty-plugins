@@ -26,16 +26,16 @@ def where_am_i(bot, user):
 		return True, user_location_map[user.id_.chat_id]
 	else:
 		return False, ''
-	
-def update_location(bot, event, command):
-    if event.user.is_self:
-        return
 
-    if "maps.google.com" in event.text:
-        logger.info(event.text)
-        tmp = event.text.split("?q=")[1].split("@")
-        user_location_map[event.user.id_.chat_id] = tmp[len(tmp)-1] 
-        yield from bot.coro_send_message(event.conv_id, "I now know where " + event.user.full_name + " is ( ͡° ͜ʖ ͡°)")
+def update_location(bot, event, command):
+	if event.user.is_self:
+		return
+	logger.info(event.text)
+	if "maps.google.com" in event.text:
+		logger.info(event.text)
+		tmp = event.text.split("q=")[1].split("@")
+		user_location_map[event.user.id_.chat_id] = tmp[len(tmp)-1]
+		yield from bot.coro_send_message(event.conv_id, "I now know where " + event.user.full_name + " is ( ͡° ͜ʖ ͡°)")
 
 def get_place_at(bot, location, type):
 	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
@@ -48,7 +48,7 @@ def get_place_at(bot, location, type):
 	r_json = yield from r.json()
 	if len(r_json["results"]) == 0:
 		return False, '', '', None
-	
+
 	place = r_json["results"][0]
 
 	url = base_url_details
@@ -58,12 +58,12 @@ def get_place_at(bot, location, type):
 	r = yield from aiohttp.request("get", url)
 	r_json = yield from r.json()
 	place = r_json["result"]
-	
+
 	image_data, filename = yield from get_map(bot, place["geometry"]["location"])
 	image_id = yield from bot._client.upload_image(image_data, filename=filename)
-	
+
 	return True, place["name"], place["url"], image_id
-		
+
 def get_map(bot, latlng):
     url = "https://maps.googleapis.com/maps/api/staticmap"
     url += "?center=" + str(latlng["lat"]) + "," + str(latlng["lng"]) + "&zoom=18"
@@ -78,7 +78,7 @@ def get_map(bot, latlng):
     return io.BytesIO(raw), filename
 
 def maybedrink(bot, event, location):
-	try: 
+	try:
 		success, name, image_id = yield from bot.call_shared("mixme.here", bot, str(location["lat"]) + "," + str(location["lng"]))
 		if success:
 			yield from bot.coro_send_message(event.conv_id, ".. and we can have a <b>" + name + "</b>", image_id=image_id)
@@ -87,7 +87,7 @@ def maybedrink(bot, event, location):
 	except Exception as e:
 		logger.info(e)
 		logger.info('mixme plugin not loaded')
-	
+
 def query(bot, event, qtype, args):
 	location = oslo_latlng
 	rad = radius
