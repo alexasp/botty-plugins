@@ -1,9 +1,18 @@
-import plugins, logging, time, asyncio, aiohttp, time, math, sys
+import plugins, logging, time, asyncio, aiohttp, time, math, sys, re
 from xml.etree import ElementTree
 logger = logging.getLogger(__name__)
 
 def _initialise(bot):
+    plugins.register_handler(quick_forecast, type="message", priority=5)
     plugins.register_user_command(["forecast"])
+
+def quick_forecast(bot, event, command):
+    text_lower = event.text.lower()
+    if "weather" in text_lower:
+        match = re.search(r"\#(\w*)weather", text_lower)
+        if match is not None:
+            yield from forecast(bot, event, *["today", match.group(1)])
+
 
 def get_location(geo_id):
     url = "http://api.geonames.org/get?geonameId={0}&username=jkrmc12".format(geo_id)
@@ -49,6 +58,7 @@ def forecast(bot, event, *args):
         return
 
     location = None
+    today_only = False
     if args[0].lower().strip() == "here":
         try:
             success, lnglat = bot.call_shared("where.ami", bot, event.user)
@@ -65,6 +75,10 @@ def forecast(bot, event, *args):
             yield from bot.coro_send_message(event.conv_id, "I duno where you are, plz share location")
             return
     else:
+        if len(args) > 1 and args[0].lower().strip() == "today":
+            today_only = True
+            args = args[1:]
+
         location = yield from get_location_by_search(" ".join(args))
         if location is None:
             yield from bot.coro_send_message(event.conv_id, "I duno where {0} is".format(" ".join(args)))
@@ -94,7 +108,8 @@ def forecast(bot, event, *args):
 
     tab_time_line = forecast.find("tabular").findall("time")
 
-    message = "<b>"+days[day_index]+"</b>\n"
+    message = "<b>"+place.text+"</b>\n"
+    message += "<b>"+days[day_index]+"</b>\n"
     for time in tab_time_line:
         time_slot = ""
         period = time.attrib["period"]
@@ -111,6 +126,8 @@ def forecast(bot, event, *args):
 
         if period == "3":
             yield from bot.coro_send_message(event.conv_id, message)
+            if today_only:
+                break
             day_index += 1
             if day_index >= len(days):
                 break
