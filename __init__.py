@@ -18,7 +18,8 @@ plugs = [
     "tldrify",
     "whatis",
     "whereto",
-    "botbiker"
+    "botbiker",
+    "botforecast"
 ]
 
 #TODO:  /bot reload kaller ikke _initializse. Vet ikke om det er en bug men
