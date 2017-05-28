@@ -74,9 +74,9 @@ def forecast(bot, event, *args):
     county = location.find("adminName1")
     municipality = location.find("adminName2")
     place = location.find("name")
-    if municipality is None:
+    if municipality is None or municipality.text is None:
         municipality = place
-    if county is None:
+    if county is None or county.text is None:
         county = place
 
     url_p = "{0}/{1}/{2}/{3}".format(country.text, county.text, municipality.text, place.text)
@@ -85,10 +85,33 @@ def forecast(bot, event, *args):
     tmp = yield from r.text()
     forecast = ElementTree.fromstring(tmp).find("forecast")
     if forecast is None:
-        yield from bot.coro_send_message(event.conv_id, "Failed to find waether data for " + url_p)
+        yield from bot.coro_send_message(event.conv_id, "Failed to find weather data for " + url_p)
         return
 
     time_line = forecast.find("text").find("location").findall("time")
-    for time in time_line:
-        message = "<b>"+time.find("title").text+"</b> "+ time.find("body").text
-        yield from bot.coro_send_message(event.conv_id, message)
+    days = [time.find("title").text for time in time_line]
+    day_index = 0
+
+    tab_time_line = forecast.find("tabular").findall("time")
+
+    message = "<b>"+days[day_index]+"</b>\n"
+    for time in tab_time_line:
+        time_slot = ""
+        period = time.attrib["period"]
+        if period == "0":
+            time_slot = "kl 00-06"
+        elif period == "1":
+            time_slot = "kl 06-12"
+        elif period == "2":
+            time_slot = "kl 12-18"
+        elif period == "3":
+            time_slot = "kl 18-24"
+
+        message += "<b>"+time_slot+"</b> " + time.find("symbol").attrib["name"] + " " + time.find("temperature").attrib["value"] + "℃\n"
+
+        if period == "3":
+            yield from bot.coro_send_message(event.conv_id, message)
+            day_index += 1
+            if day_index >= len(days):
+                break
+            message = "<b>"+days[day_index]+"</b>\n"
