@@ -20,6 +20,7 @@ plugs = [
     "whereto",
     "botbiker",
     "botforecast",
+    "autoposter",
     "swaptron"
 ]
 
