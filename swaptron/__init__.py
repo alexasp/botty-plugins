@@ -43,7 +43,7 @@ def swappify(bot, event, source):
     tmp = tempfile.NamedTemporaryFile()
     tmp.write(raw)
 
-    out_tmp = tempfile.gettempdir() + source + "_output.jpg"
+    out_tmp = tempfile.gettempdir() + '/' + source + "_output.jpg"
     try:
         swap_image(tmp.name, "./plugins/botty-plugins/swaptron/pics/"+source+".jpg", out_tmp)
     except:
