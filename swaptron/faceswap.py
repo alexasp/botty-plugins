@@ -47,9 +47,10 @@ import cv2
 import dlib
 import numpy
 
-import sys
+import sys, os
 
-PREDICTOR_PATH = "./plugins/botty-plugins/swaptron/shape_predictor_68_face_landmarks.dat"
+current_dir = os.path.dirname(os.path.realpath(__file__))
+PREDICTOR_PATH = current_dir + "/shape_predictor_68_face_landmarks.dat"
 SCALE_FACTOR = 1
 FEATHER_AMOUNT = 11
 
