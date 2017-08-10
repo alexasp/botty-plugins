@@ -51,17 +51,31 @@ def andymemer(bot, event, *args):
             draw.text_antialias = True
 
             def splitText(text):
-                metrics = draw.get_font_metrics(i, text, multiline=True)
+                metrics = draw.get_font_metrics(i, text, multiline=False)
                 if(metrics.text_width > 900):
                     tmp = text.split(' ')
-                    return splitText(' '.join(tmp[:len(tmp)//2]) + '\n' + ' '.join(tmp[len(tmp)//2:]))
+                    if len(tmp) == 1: return tmp[0]
+                    return splitText(' '.join(tmp[:len(tmp)//2])) + '\n' + splitText(' '.join(tmp[len(tmp)//2:]))
                 return text
 
-            draw.text(500, 150, splitText(toptext))
+            def scaleText(text):
+                tmp = splitText(text)
+                metrics = draw.get_font_metrics(i, tmp, multiline=True)
+                if (metrics.text_height > 300 or metrics.text_width > 900) and draw.font_size > 60:
+                    draw.font_size = draw.font_size - 20
+                    return scaleText(text)
+                else:
+                    return tmp
 
-            tmp_bottom = splitText(bottomtext)
+            draw.font_size = 160
+            tmp_top = scaleText(toptext)
+            metrics = draw.get_font_metrics(i, tmp_top, multiline=True)
+            draw.text(500, 250 - int(metrics.text_height*0.5), tmp_top)
+
+            draw.font_size = 160
+            tmp_bottom = scaleText(bottomtext)
             metrics = draw.get_font_metrics(i, tmp_bottom, multiline=True)
-            draw.text(500, 1000 - int(metrics.text_height), tmp_bottom)
+            draw.text(500, 1200 - int(metrics.text_height*1.5), tmp_bottom)
 
             draw(i)
             image_id = yield from bot._client.upload_image(io.BytesIO(i.make_blob(format="jpeg")), filename=meme+'.jpg')
