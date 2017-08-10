@@ -1,9 +1,16 @@
 import asyncio, aiohttp, re, os, io, tempfile
 import plugins, logging
 
-from .faceswap import *
-
 logger = logging.getLogger(__name__)
+
+
+class AlexIsANoobException(Exception):
+    pass
+
+try:
+    from .faceswap import *
+except:
+    raise AlexIsANoobException("Alex doesn't understand how to install software")
 
 image_posted_url = None
 current_dir = os.path.dirname(os.path.realpath(__file__))
