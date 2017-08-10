@@ -39,7 +39,8 @@ def swappify(bot, event, source):
     out_tmp = tempfile.gettempdir() + source + next(tempfile._get_candidate_names()) + ".jpg"
     try:
         swap_image(tmp.name, current_dir+"/pics/"+source+".jpg", out_tmp)
-    except:
+    except Exception as e:
+        logger.warn(str(e))
         yield from bot.coro_send_message(event.conv_id, "Failed to swap")
         return
 

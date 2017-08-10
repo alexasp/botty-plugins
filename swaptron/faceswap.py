@@ -90,12 +90,10 @@ class NoFaces(Exception):
 def get_landmarks(im):
     rects = detector(im, 1)
 
-    if len(rects) > 1:
-        raise TooManyFaces
     if len(rects) == 0:
         raise NoFaces
 
-    return numpy.matrix([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
+    return [numpy.matrix([[p.x, p.y] for p in predictor(im, rect).parts()]) for rect in rects]
 
 def annotate_landmarks(im, landmarks):
     im = im.copy()
@@ -201,21 +199,25 @@ def correct_colours(im1, im2, landmarks1):
                                                 im2_blur.astype(numpy.float64))
 
 def swap_image(image0, image1, output):
+
     im1, landmarks1 = read_im_and_landmarks(image0)
     im2, landmarks2 = read_im_and_landmarks(image1)
 
-    M = transformation_from_points(landmarks1[ALIGN_POINTS],
-                                   landmarks2[ALIGN_POINTS])
+    mask = get_face_mask(im2, landmarks2[0])
 
-    mask = get_face_mask(im2, landmarks2)
-    warped_mask = warp_im(mask, M, im1.shape)
-    combined_mask = numpy.max([get_face_mask(im1, landmarks1), warped_mask],
-                              axis=0)
+    output_im = im1
+    for landmark in landmarks1:
+        M = transformation_from_points(landmark[ALIGN_POINTS],
+                                       landmarks2[0][ALIGN_POINTS])
 
-    warped_im2 = warp_im(im2, M, im1.shape)
-    warped_corrected_im2 = correct_colours(im1, warped_im2, landmarks1)
+        warped_mask = warp_im(mask, M, im1.shape)
+        combined_mask = numpy.max([get_face_mask(im1, landmark), warped_mask],
+                                  axis=0)
 
-    output_im = im1 * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
+        warped_im2 = warp_im(im2, M, im1.shape)
+        warped_corrected_im2 = correct_colours(im1, warped_im2, landmark)
+
+        output_im = output_im * (1.0 - combined_mask) + warped_corrected_im2 * combined_mask
 
     cv2.imwrite(output, output_im)
 
