@@ -13,7 +13,7 @@ except:
     raise AlexIsANoobException("Alex doesn't understand how to install software")
 
 
-memes = ["disgust","funi","insulted","china","weird","what"]
+memes = ["disgust","funi","insulted","china","weird","what","sad"]
 logger = logging.getLogger(__name__)
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -54,14 +54,14 @@ def andymemer(bot, event, *args):
                 metrics = draw.get_font_metrics(i, text, multiline=False)
                 if(metrics.text_width > 900):
                     tmp = text.split(' ')
-                    if len(tmp) == 1: return tmp[0]
+                    if len(tmp) == 1: return splitText(tmp[0][::2]) + '...\n' + splitText(tmp[0][1::2])
                     return splitText(' '.join(tmp[:len(tmp)//2])) + '\n' + splitText(' '.join(tmp[len(tmp)//2:]))
                 return text
 
             def scaleText(text):
                 tmp = splitText(text)
                 metrics = draw.get_font_metrics(i, tmp, multiline=True)
-                if (metrics.text_height > 300 or metrics.text_width > 900) and draw.font_size > 60:
+                if (metrics.text_height > 350 or metrics.text_width > 1000) and draw.font_size > 40:
                     draw.font_size = draw.font_size - 20
                     return scaleText(text)
                 else:
@@ -70,12 +70,12 @@ def andymemer(bot, event, *args):
             draw.font_size = 160
             tmp_top = scaleText(toptext)
             metrics = draw.get_font_metrics(i, tmp_top, multiline=True)
-            draw.text(500, 250 - int(metrics.text_height*0.5), tmp_top)
+            draw.text(500, 10 + int(metrics.character_height), tmp_top)
 
             draw.font_size = 160
             tmp_bottom = scaleText(bottomtext)
             metrics = draw.get_font_metrics(i, tmp_bottom, multiline=True)
-            draw.text(500, 1200 - int(metrics.text_height*1.5), tmp_bottom)
+            draw.text(500, 980 + int(metrics.character_height) - int(metrics.text_height), tmp_bottom)
 
             draw(i)
             image_id = yield from bot._client.upload_image(io.BytesIO(i.make_blob(format="jpeg")), filename=meme+'.jpg')
