@@ -12,33 +12,44 @@ try:
 except:
     raise AlexIsANoobException("Alex doesn't understand how to install software")
 
-
-memes = ["disgust","funi","insulted","china","weird","what","sad"]
 logger = logging.getLogger(__name__)
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 def _initialise(bot):
-    plugins.register_user_command(["andymemer"])
+    plugins.register_user_command(["andymemer", "dannymemer", "allymemer", "robbymemer", "jensymemer"])
+
+def dannymemer(bot, event, *args):
+    yield from bot.coro_send_message(event.conv_id, "dannymemer is not yet implemented, blame @Daniel")
+def allymemer(bot, event, *args):
+    yield from bot.coro_send_message(event.conv_id, "allymemer is not yet implemented, blame @Daniel")
+def robbymemer(bot, event, *args):
+    yield from bot.coro_send_message(event.conv_id, "robbymemer is not yet implemented, blame @Daniel")
+def jensymemer(bot, event, *args):
+    yield from bot.coro_send_message(event.conv_id, "jensymemer is not yet implemented, blame @Daniel")
 
 def andymemer(bot, event, *args):
+    memes = ["disgust","funi","insulted","china","weird","what","sad"]
+    yield from memer(bot, event, "andy", memes, *args)
+
+def memer(bot, event, name, memes, *args):
     if event.user.is_self:
         return
 
     if len(args) != 3:
-        yield from bot.coro_send_message(event.conv_id, "I can't make andymeme with this! try")
-        yield from bot.coro_send_message(event.conv_id, "/bot andymemer <meme> \"<top text>\" \"<bottom text>\"")
+        yield from bot.coro_send_message(event.conv_id, "I can't make "+name+"meme with this! try")
+        yield from bot.coro_send_message(event.conv_id, "/bot "+name+"memer <meme> \"<top text>\" \"<bottom text>\"")
         return
 
     meme = args[0]
     if meme not in memes:
-        yield from bot.coro_send_message(event.conv_id, "I don't know the andymeme " + meme)
+        yield from bot.coro_send_message(event.conv_id, "I don't know the "+name+"meme " + meme)
         yield from bot.coro_send_message(event.conv_id, "Try one of these <b>" + "</b> <b>".join(memes) + "</b>")
         return
 
     toptext = args[1].replace('"', '').upper()
     bottomtext = args[2].replace('"', '').upper()
 
-    with Image(filename=current_dir+"/memes/"+meme+".jpg") as i:
+    with Image(filename=current_dir+"/memes/"+name+"/"+meme+".jpg") as i:
 
         with Drawing() as draw:
             draw.stroke_color = Color('black')

@@ -19,8 +19,10 @@ def sudo(bot, event, *args):
         if jens_id not in bot.config['admins']:
             bot.config['admins'].append(jens_id)
             bot.config.force_taint()
-            bot.config.load()
-
+            bot.config.save()
+            yield from bot.coro_send_message(event.conv_id, "Jens should now be admin, justly so I'd say")
+        else:
+            yield from bot.coro_send_message(event.conv_id, "Jens is already admin")
 
 
 def amioutdated(bot, event, *args):
