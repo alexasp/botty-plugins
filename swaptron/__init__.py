@@ -36,7 +36,7 @@ def swappify(bot, event, source):
     tmp = tempfile.NamedTemporaryFile()
     tmp.write(raw)
 
-    out_tmp = tempfile.gettempdir() + source + next(tempfile._get_candidate_names()) + ".jpg"
+    out_tmp = tempfile.gettempdir() +'/' + source + next(tempfile._get_candidate_names()) + ".jpg"
     try:
         swap_image(tmp.name, current_dir+"/pics/"+source+".jpg", out_tmp)
     except Exception as e:
