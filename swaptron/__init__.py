@@ -9,6 +9,7 @@ class AlexIsANoobException(Exception):
 
 try:
     from .faceswap import *
+    from wand.image import Image
 except:
     raise AlexIsANoobException("Alex doesn't understand how to install software")
 
@@ -18,12 +19,15 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 def _initialise(bot):
     plugins.register_handler(store_image, type="message", priority=1)
     #plugins.register_handler(store_image_bot, type="sending", priority=1)
-    plugins.register_user_command(["dannify", "andify", "alify", "robbify", "jensify"])
+    plugins.register_user_command(["dannify", "danify", "andify", "alify", "allify", "robbify", "robify", "jensify"])
 
 def store_image(bot, event, command):
     global image_posted_url
     if "lh3.googleusercontent.com" in event.text:
         image_posted_url = event.text
+
+def swappimation(bot, event, image, source):
+    yield from bot.coro_send_message(event.conv.id_, "IT IS A GIF!")
 
 def swappify(bot, event, source):
     global image_posted_url
@@ -33,6 +37,12 @@ def swappify(bot, event, source):
 
     r = yield from aiohttp.request('get', image_posted_url)
     raw = yield from r.read()
+
+    with Image(blob=raw) as img:
+        if img.format == 'GIF' or img.animation:
+            yield from swappimation(bot, event, img, source)
+            return
+
     tmp = tempfile.NamedTemporaryFile()
     tmp.write(raw)
 
@@ -51,11 +61,21 @@ def swappify(bot, event, source):
 
 def dannify(bot, event, *args):
     yield from swappify(bot, event, "danny")
+def danify(bot, event, *args):
+    yield from dannify(bot, event, *args)
+
 def andify(bot, event, *args):
     yield from swappify(bot, event, "andre")
+    
 def alify(bot, event, *args):
     yield from swappify(bot, event, "alex")
+def allify(bot, event, *args):
+    yield from alify(bot, event, *args)
+
 def robbify(bot, event, *args):
     yield from swappify(bot, event, "robin")
+def robify(bot, event, *args):
+    yield from robbify(bot, event, *args)
+
 def jensify(bot, event, *args):
     yield from swappify(bot, event, "jens")
