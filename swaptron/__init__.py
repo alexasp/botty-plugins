@@ -1,4 +1,4 @@
-import asyncio, aiohttp, re, os, io, tempfile
+import asyncio, aiohttp, re, os, io, tempfile, shutil
 import plugins, logging
 
 logger = logging.getLogger(__name__)
@@ -10,6 +10,7 @@ class AlexIsANoobException(Exception):
 try:
     from .faceswap import *
     from wand.image import Image
+    import PIL.Image
 except:
     raise AlexIsANoobException("Alex doesn't understand how to install software")
 
@@ -26,8 +27,60 @@ def store_image(bot, event, command):
     if "lh3.googleusercontent.com" in event.text:
         image_posted_url = event.text
 
+def save_gif(infile, output):
+    im = PIL.Image.open(infile)
+    i = 0
+    mypalette = im.getpalette()
+
+    try:
+        while 1:
+            im.putpalette(mypalette)
+            new_im = PIL.Image.new("RGBA", im.size)
+            new_im.paste(im)
+            new_im.save(output.format(str(i)))
+
+            i += 1
+            im.seek(im.tell() + 1)
+    except EOFError:
+        pass # end of sequence
+
 def swappimation(bot, event, image, source):
-    yield from bot.coro_send_message(event.conv.id_, "IT IS A GIF!")
+    tmpdir = tempfile.mkdtemp()
+    frame_delays = []
+
+    image.save(filename=tmpdir + "/tmp.gif")
+    save_gif(tmpdir + "/tmp.gif", tmpdir + "/i-{0}.png")
+
+    for cur, frame in enumerate(image.sequence):
+        frame_delays.append(frame.delay)
+
+        in_file = tmpdir + "/i-" + str(cur) + ".png"
+        out_file = tmpdir + "/o-" + str(cur) + ".png"
+        try:
+            swap_image(in_file, current_dir+"/pics/"+source+".jpg", out_file)
+        except Exception as e:
+            logger.warn(str(e))
+
+
+    with Image() as out_img:
+        for cur, delay in enumerate(frame_delays):
+            try:
+                with Image(filename=tmpdir + "/o-" + str(cur) + ".png") as img:
+                    out_img.sequence.append(img)
+            except:
+                with Image(filename=tmpdir + "/i-" + str(cur) + ".png") as img:
+                    out_img.sequence.append(img)
+
+            with out_img.sequence[cur] as frame:
+                frame.delay = delay
+
+        out_img.format = 'GIF'
+        out_img.type = 'optimize'
+        image_id = yield from bot._client.upload_image(io.BytesIO(out_img.make_blob(format="gif")), filename=source+'.gif')
+        yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
+
+    shutil.rmtree(tmpdir)
+
 
 def swappify(bot, event, source):
     global image_posted_url
@@ -66,7 +119,7 @@ def danify(bot, event, *args):
 
 def andify(bot, event, *args):
     yield from swappify(bot, event, "andre")
-    
+
 def alify(bot, event, *args):
     yield from swappify(bot, event, "alex")
 def allify(bot, event, *args):
