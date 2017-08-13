@@ -28,7 +28,7 @@ def store_image_bot(bot, event, command):
 
     if event.user.is_self and not self_flag:
         store_image(bot, event, command)
-        self_flag = False
+    self_flag = False
 
 def store_image(bot, event, command):
     global image_posted_url
