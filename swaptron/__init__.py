@@ -19,8 +19,13 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 
 def _initialise(bot):
     plugins.register_handler(store_image, type="message", priority=1)
-    #plugins.register_handler(store_image_bot, type="sending", priority=1)
+    plugins.register_handler(store_image_bot, type="sending", priority=1)
     plugins.register_user_command(["dannify", "danify", "andify", "alify", "allify", "robbify", "robify", "jensify"])
+
+def store_image_bot(bot, broadcast_list, context):
+    pass
+    #conv_id = broadcast_list[0][0]
+    #logger.info(bot.conversations.catalog[conv_id])
 
 def store_image(bot, event, command):
     global image_posted_url
@@ -28,21 +33,55 @@ def store_image(bot, event, command):
         image_posted_url = event.text
 
 def save_gif(infile, output):
-    im = PIL.Image.open(infile)
-    i = 0
-    mypalette = im.getpalette()
+    def analyseImage(infile):
+        im = PIL.Image.open(infile)
+        results = {
+            'size': im.size,
+            'mode': 'full',
+        }
+        try:
+            while True:
+                if im.tile:
+                    tile = im.tile[0]
+                    update_region = tile[1]
+                    update_region_dimensions = update_region[2:]
+                    if update_region_dimensions != im.size:
+                        results['mode'] = 'partial'
+                        break
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
+        return results
 
-    try:
-        while 1:
-            im.putpalette(mypalette)
-            new_im = PIL.Image.new("RGBA", im.size)
-            new_im.paste(im)
-            new_im.save(output.format(str(i)))
+    def processImage(infile):
+        mode = analyseImage(infile)['mode']
+        im = PIL.Image.open(infile)
+        i = 0
+        p = im.getpalette()
+        last_frame = im.convert('RGBA')
 
-            i += 1
-            im.seek(im.tell() + 1)
-    except EOFError:
-        pass # end of sequence
+        try:
+            while True:
+                if not im.getpalette():
+                    im.putpalette(p)
+
+                new_frame = PIL.Image.new('RGBA', im.size)
+
+                if mode == 'partial':
+                    new_frame.paste(last_frame)
+
+                new_frame.paste(im, (0,0), im.convert('RGBA'))
+                yield new_frame
+
+                i += 1
+                last_frame = new_frame
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
+
+    for i, frame in enumerate(processImage(infile)):
+        frame.save(output.format(str(i)))
+
 
 def swappimation(bot, event, image, source):
     tmpdir = tempfile.mkdtemp()
