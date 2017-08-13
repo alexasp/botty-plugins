@@ -1,5 +1,6 @@
 import asyncio, aiohttp, re, os, io, tempfile, shutil
 import plugins, logging
+from concurrent.futures import ProcessPoolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,13 @@ def save_gif(infile, output):
     for i, frame in enumerate(processImage(infile)):
         frame.save(output.format(str(i)))
 
+#def swap_process(in_file, out_file, source_file):
+def swap_process(args):
+    try:
+        #swap_image(in_file, source_file, out_file)
+        swap_image(args[0], args[2], args[1])
+    except Exception as e:
+        pass
 
 def swappimation(bot, event, image, source):
     tmpdir = tempfile.mkdtemp()
@@ -94,16 +102,19 @@ def swappimation(bot, event, image, source):
     image.save(filename=tmpdir + "/tmp.gif")
     save_gif(tmpdir + "/tmp.gif", tmpdir + "/i-{0}.png")
 
-    for cur, frame in enumerate(image.sequence):
-        frame_delays.append(frame.delay)
+    p_map = []
+    for cur in range(len(image.sequence)):
+        with image.sequence[cur] as frame:
+            frame_delays.append(frame.delay)
+        p_map.append((
+            tmpdir + "/i-" + str(cur) + ".png",
+            tmpdir + "/o-" + str(cur) + ".png",
+            current_dir+"/pics/"+source+".jpg"
+        ))
 
-        in_file = tmpdir + "/i-" + str(cur) + ".png"
-        out_file = tmpdir + "/o-" + str(cur) + ".png"
-        try:
-            swap_image(in_file, current_dir+"/pics/"+source+".jpg", out_file)
-        except Exception as e:
-            logger.warn(str(e))
-
+    chunksize = len(p_map)//4 if len(p_map) >= 4 else 1
+    with ProcessPoolExecutor(max_workers=8) as executor:
+        executor.map(swap_process, p_map, chunksize=chunksize)
 
     with Image() as out_img:
         for cur, delay in enumerate(frame_delays):
@@ -114,12 +125,14 @@ def swappimation(bot, event, image, source):
                 with Image(filename=tmpdir + "/i-" + str(cur) + ".png") as img:
                     out_img.sequence.append(img)
 
+        for cur in range(len(out_img.sequence)):
             with out_img.sequence[cur] as frame:
                 frame.delay = delay
 
         out_img.format = 'GIF'
         out_img.type = 'optimize'
-        image_id = yield from bot._client.upload_image(io.BytesIO(out_img.make_blob(format="gif")), filename=source+'.gif')
+        blob = out_img.make_blob(format="gif")
+        image_id = yield from bot._client.upload_image(io.BytesIO(blob), filename=source+'.gif')
         yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
 
     shutil.rmtree(tmpdir)
