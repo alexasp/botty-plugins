@@ -16,16 +16,19 @@ except:
 
 image_posted_url = None
 current_dir = os.path.dirname(os.path.realpath(__file__))
+self_flag = False
 
 def _initialise(bot):
     plugins.register_handler(store_image, type="message", priority=1)
-    plugins.register_handler(store_image_bot, type="sending", priority=1)
+    plugins.register_handler(store_image_bot, type="allmessages", priority=1)
     plugins.register_user_command(["dannify", "danify", "andify", "alify", "allify", "robbify", "robify", "jensify"])
 
-def store_image_bot(bot, broadcast_list, context):
-    pass
-    #conv_id = broadcast_list[0][0]
-    #logger.info(bot.conversations.catalog[conv_id])
+def store_image_bot(bot, event, command):
+    global self_flag
+
+    if not self_flag:
+        store_image(bot, event, command)
+    self_flag = False
 
 def store_image(bot, event, command):
     global image_posted_url
@@ -122,7 +125,7 @@ def swappimation(bot, event, image, source):
 
 
 def swappify(bot, event, source):
-    global image_posted_url
+    global image_posted_url, self_flag
     if image_posted_url is None:
         yield from bot.coro_send_message(event.conv_id, "No image has been posted to dannify")
         return
@@ -132,6 +135,7 @@ def swappify(bot, event, source):
 
     with Image(blob=raw) as img:
         if img.format == 'GIF' or img.animation:
+            self_flag = True
             yield from swappimation(bot, event, img, source)
             return
 
@@ -147,6 +151,7 @@ def swappify(bot, event, source):
         return
 
     image_data = io.FileIO(out_tmp, 'r')
+    self_flag = True
     image_id = yield from bot._client.upload_image(image_data, filename=out_tmp)
     yield from bot.coro_send_message(event.conv.id_, None, image_id=image_id)
     os.remove(out_tmp)
