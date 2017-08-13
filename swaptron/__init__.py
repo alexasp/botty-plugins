@@ -26,9 +26,10 @@ def _initialise(bot):
 def store_image_bot(bot, event, command):
     global self_flag
 
-    if event.user.is_self and not self_flag:
-        store_image(bot, event, command)
-    self_flag = False
+    if event.user.is_self:
+        if not self_flag:
+            store_image(bot, event, command)
+        self_flag = False
 
 def store_image(bot, event, command):
     global image_posted_url
