@@ -96,6 +96,21 @@ def swap_process(args):
         pass
     return args
 
+def run_swap(parallell, pmap):
+    if parallell:
+        thread_pool = Pool(8)
+        logger.info('pool spawnd')
+        #chunksize = len(p_map)//4 if len(p_map) >= 4 else 1
+        #thread_pool.map(swap_process, p_map, chunksize=chunksize)
+        thread_pool.map(swap_process, pmap)
+
+        # Make sure python cleans up FFS
+        thread_pool.terminate()
+        thread_pool.join()
+    else:
+        for arg in pmap:
+            swap_process(arg)
+
 def swappimation(bot, event, image, source):
     tmpdir = tempfile.mkdtemp()
     frame_delays = []
@@ -113,15 +128,7 @@ def swappimation(bot, event, image, source):
             current_dir+"/pics/"+source+".jpg"
         ))
 
-    thread_pool = Pool(8)
-    logger.info('pool spawnd')
-    #chunksize = len(p_map)//4 if len(p_map) >= 4 else 1
-    #thread_pool.map(swap_process, p_map, chunksize=chunksize)
-    thread_pool.map(swap_process, p_map)
-
-    # Make sure python cleans up FFS
-    thread_pool.terminate()
-    thread_pool.join()
+    run_swap(False, p_map)
 
     with Image() as out_img:
         for cur, delay in enumerate(frame_delays):
