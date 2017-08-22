@@ -21,7 +21,7 @@ self_flag = False
 def _initialise(bot):
     plugins.register_handler(store_image, type="message", priority=1)
     plugins.register_handler(store_image_bot, type="allmessages", priority=1)
-    plugins.register_user_command(["andymemer", "dannymemer", "allymemer", "robbymemer", "jensymemer", "memit"])
+    plugins.register_user_command(["andymemer", "dannymemer", "allymemer", "robbymemer", "jensymemer", "memit", "listmems"])
 
 def store_image_bot(bot, event, command):
     global self_flag
@@ -36,25 +36,37 @@ def store_image(bot, event, command):
     if "lh3.googleusercontent.com" in event.text:
         image_posted_url = event.text
 
+def getmems(path):
+    return [f.split('.')[0] for f in os.listdir(current_dir+path) if f.endswith('.jpg')]
+
+def listmems(bot, event, *args):
+    mems = ["danny", "ally", "robby", "jensy", "andy"]
+    list_mems = []
+    if len(args) == 0:
+        list_mems = mems
+    else:
+        for arg in args:
+            if arg in mems:
+                list_mems.append(arg)
+            else:
+                yield from bot.coro_send_message(event.conv_id, "Don't know mem: <b>" + arg + "</b>")
+    for mem in list_mems:
+        yield from bot.coro_send_message(event.conv_id, mem + "mems: <b>" + "</b> <b>".join(getmems('/memes/'+mem+'/')) + "</b>")
+
 def dannymemer(bot, event, *args):
-    memes = ["crazy", "fraid", "insulted", "smug", "triggerd", "what"]
-    yield from memer(bot, event, "danny", memes, *args)
+    yield from memer(bot, event, "danny", getmems('/memes/danny/'), *args)
 
 def allymemer(bot, event, *args):
-    memes = ["angry", "happy", "high", "what"]
-    yield from memer(bot, event, "ally", memes, *args)
+    yield from memer(bot, event, "ally", getmems('/memes/ally/'), *args)
 
 def robbymemer(bot, event, *args):
-    memes = ["cool"]
-    yield from memer(bot, event, "robby", memes, *args)
+    yield from memer(bot, event, "robby", getmems('/memes/robby/'), *args)
 
 def jensymemer(bot, event, *args):
-    memes = ["crazy", "happy", "sleepy", "spaced", "what"]
-    yield from memer(bot, event, "jensy", memes, *args)
+    yield from memer(bot, event, "jensy", getmems('/memes/jensy/'), *args)
 
 def andymemer(bot, event, *args):
-    memes = ["disgust","funi","insulted","china","weird","what","sad"]
-    yield from memer(bot, event, "andy", memes, *args)
+    yield from memer(bot, event, "andy", getmems('/memes/andy/'), *args)
 
 def memit(bot, event, *args):
     global image_posted_url
@@ -102,7 +114,7 @@ def make_meme(bot, event, toptext, bottomtext, base_image_path=None, base_image_
         with Drawing() as draw:
             draw.stroke_color = Color('black')
             draw.fill_color = Color('white')
-            draw.stroke_width = 5
+            draw.stroke_width = 3
             draw.text_alignment = 'center'
             draw.font = current_dir+'/impactreg.ttf'
             draw.font_size = 112
@@ -110,7 +122,7 @@ def make_meme(bot, event, toptext, bottomtext, base_image_path=None, base_image_
             draw.text_antialias = True
 
             max_width = i.size[0]
-            max_text_height = int(i.size[1]*0.4)
+            max_text_height = int(i.size[1]*0.3)
             def splitText(text):
                 metrics = draw.get_font_metrics(i, text, multiline=False)
                 if(metrics.text_width > max_width):
@@ -128,12 +140,12 @@ def make_meme(bot, event, toptext, bottomtext, base_image_path=None, base_image_
                 else:
                     return tmp
 
-            draw.font_size = 160
+            draw.font_size = 140
             tmp_top = scaleText(toptext)
             metrics = draw.get_font_metrics(i, tmp_top, multiline=True)
             draw.text(max_width//2, 10 + int(metrics.character_height), tmp_top)
 
-            draw.font_size = 160
+            draw.font_size = 140
             tmp_bottom = scaleText(bottomtext)
             metrics = draw.get_font_metrics(i, tmp_bottom, multiline=True)
             draw.text(max_width//2, (i.size[1]-20) + int(metrics.character_height) - int(metrics.text_height), tmp_bottom)

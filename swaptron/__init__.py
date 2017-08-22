@@ -1,6 +1,6 @@
 import asyncio, aiohttp, re, os, io, tempfile, shutil
 import plugins, logging
-from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Pool
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +94,7 @@ def swap_process(args):
         swap_image(args[0], args[2], args[1])
     except Exception as e:
         pass
+    return args
 
 def swappimation(bot, event, image, source):
     tmpdir = tempfile.mkdtemp()
@@ -112,9 +113,15 @@ def swappimation(bot, event, image, source):
             current_dir+"/pics/"+source+".jpg"
         ))
 
-    chunksize = len(p_map)//4 if len(p_map) >= 4 else 1
-    with ProcessPoolExecutor(max_workers=8) as executor:
-        executor.map(swap_process, p_map, chunksize=chunksize)
+    thread_pool = Pool(8)
+    logger.info('pool spawnd')
+    #chunksize = len(p_map)//4 if len(p_map) >= 4 else 1
+    #thread_pool.map(swap_process, p_map, chunksize=chunksize)
+    thread_pool.map(swap_process, p_map)
+
+    # Make sure python cleans up FFS
+    thread_pool.terminate()
+    thread_pool.join()
 
     with Image() as out_img:
         for cur, delay in enumerate(frame_delays):
