@@ -22,7 +22,8 @@ plugs = [
     "botforecast",
     "autoposter",
     "swaptron",
-    "andymemer"
+    "andymemer",
+    "commandhelper"
 ]
 
 #TODO:  /bot reload kaller ikke _initializse. Vet ikke om det er en bug men
