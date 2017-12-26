@@ -141,7 +141,7 @@ def coin(bot, event, args):
     data = r_json['DISPLAY'][scoin][conv]
     coin_data = cmap[scoin]
     yield from bot.coro_send_message(event.conv_id,
-        '{0} last 24h\n<b>High:\t\t</b>{2}\n<b>Low:\t\t\t</b>{3}\n<b>Change:\t\t</b>{4} ({5}%)\n<b>Price:\t\t</b>{6}'.format(
+        '{0} last 24h\n<b>High:\t\t</b>{2}\n<b>Low:\t\t</b>{3}\n<b>Change:\t\t</b>{4} ({5}%)\n<b>Price:\t\t</b>{6}'.format(
             coin_data['FullName'], conv, data['HIGH24HOUR'], data['LOW24HOUR'], data['CHANGE24HOUR'], data['CHANGEPCT24HOUR'], data['PRICE']))
 
 def alertlist(bot, event, args):
