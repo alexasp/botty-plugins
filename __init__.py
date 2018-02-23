@@ -24,7 +24,8 @@ plugs = [
     "swaptron",
     "andymemer",
     "commandhelper",
-    "trader"
+    "trader",
+    "andrejoke"
 ]
 
 #TODO:  /bot reload kaller ikke _initializse. Vet ikke om det er en bug men
